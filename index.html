@@ -2,750 +2,191 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PersonaAI - סטודיו אווטארים ויראליים</title>
-    <!-- קישור לקובץ המניפסט להתקנה כאפליקציה (PWA) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#FF3366">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8361/8361517.png">
-    
-    <!-- Tailwind CSS לעיצוב מרהיב ומהיר -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome לאייקונים מדליקים -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            bg: '#030207',
-                            card: '#0d0a16',
-                            primary: '#FF3366',
-                            secondary: '#00F0FF',
-                            accent: '#9D00FF',
-                            success: '#39FF14'
-                        }
-                    },
-                    boxShadow: {
-                        'neon-pink': '0 0 15px rgba(255, 51, 102, 0.4)',
-                        'neon-blue': '0 0 15px rgba(0, 240, 255, 0.4)',
-                        'neon-glow': '0 0 25px rgba(255, 51, 102, 0.6), 0 0 50px rgba(0, 240, 255, 0.3)'
-                    }
-                }
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PersonaAI Pro</title>
+    <!-- שימוש באייקונים מקצועיים -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&display=swap');
-        body {
-            font-family: 'Assistant', sans-serif;
-            background-color: #030207;
-            background-image: 
-                radial-gradient(at 10% 20%, rgba(255, 51, 102, 0.15) 0px, transparent 50%),
-                radial-gradient(at 90% 80%, rgba(0, 240, 255, 0.15) 0px, transparent 50%);
-            background-attachment: fixed;
+        :root {
+            --primary: #00f3ff;
+            --secondary: #bc13fe;
+            --bg: #0a0a12;
+            --panel: #161625;
+            --text: #ffffff;
         }
-        /* אפקט סריקת קווים (Scanlines) בסגנון רטרו */
-        .scanlines {
-            position: relative;
-            overflow: hidden;
-        }
-        .scanlines::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 4px, 6px 100%;
-            pointer-events: none;
-        }
-        /* כפתור מותאם אישית להעלאת קבצים */
-        .file-upload-btn:hover {
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-        }
-        /* מדבקות גרירה */
-        .cyber-sticker {
-            position: absolute;
-            cursor: move;
-            user-select: none;
-            touch-action: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        header { padding: 20px; text-align: center; background: linear-gradient(90deg, var(--panel), var(--bg)); border-bottom: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10;}
+        h1 { font-size: 1.8rem; background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px;}
+        
+        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        .viewport { width: 100%; max-width: 400px; aspect-ratio: 3/4; background: var(--panel); border-radius: 20px; overflow: hidden; position: relative; box-shadow: 0 0 30px rgba(0, 243, 255, 0.05); border: 2px solid #2a2a40; transition: all 0.3s ease; }
+        
+        video, img, canvas { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        img { display: none; z-index: 2; }
+        canvas { display: none; }
+        
+        .controls { width: 100%; max-width: 400px; display: flex; justify-content: space-around; align-items: center; padding: 20px 0; z-index: 10; }
+        button { background: var(--panel); color: var(--text); border: 1px solid #333; border-radius: 50%; width: 60px; height: 60px; font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        button:active { transform: scale(0.95); }
+        
+        #captureBtn { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; color: white; width: 80px; height: 80px; font-size: 2rem; box-shadow: 0 0 20px rgba(188, 19, 254, 0.4); }
+        #retakeBtn, #downloadBtn { display: none; }
+        
+        /* סורק לייזר בזמן ההמתנה */
+        .scanner { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--primary); box-shadow: 0 0 15px 2px var(--primary); animation: scan 1.5s linear infinite; display: none; z-index: 3; }
+        .status { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; font-size: 1rem; z-index: 4; display: none; text-align: center; width: 85%; backdrop-filter: blur(5px); border: 1px solid var(--primary); color: var(--primary); font-weight: bold;}
+        
+        @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
     </style>
 </head>
-<body class="text-gray-100 min-h-screen flex flex-col justify-between scanlines">
-
-    <!-- סרגל ניווט עליון -->
-    <header class="border-b border-cyber-primary/20 bg-cyber-card/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyber-primary to-cyber-accent flex items-center justify-center shadow-neon-pink">
-                    <i class="fa-solid fa-wand-magic-sparkles text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-cyber-primary to-cyber-secondary bg-clip-text text-transparent">PersonaAI</h1>
-                    <p class="text-[10px] text-gray-400">Viral Avatar Studio</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <button id="install-btn" class="hidden bg-gradient-to-l from-cyber-primary to-cyber-accent hover:from-cyber-accent hover:to-cyber-primary text-white text-xs font-bold py-2 px-4 rounded-full shadow-neon-pink transition-all duration-300 flex items-center gap-2">
-                    <i class="fa-solid fa-download"></i>
-                    <span>התקן אפליקציה</span>
-                </button>
-                <div class="text-xs bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-primary py-1.5 px-3 rounded-full flex items-center gap-1.5 font-bold">
-                    <span class="w-2.5 h-2.5 rounded-full bg-cyber-success animate-pulse"></span>
-                    מנוע AI פעיל
-                </div>
-            </div>
-        </div>
+<body>
+    <header>
+        <h1>PERSONA AI</h1>
     </header>
-
-    <!-- אזור התוכן המרכזי -->
-    <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        <!-- עמודה שמאלית: העלאה ותצוגה מקדימה (6 עמודות) -->
-        <section class="lg:col-span-7 bg-cyber-card/60 border border-white/5 rounded-3xl p-6 backdrop-blur-md flex flex-col items-center justify-center relative shadow-2xl">
-            <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-crop-simple"></i>
-                סטודיו לעריכה בזמן אמת
-            </div>
-
-            <!-- אזור האינטראקציה והתצוגה של התמונה -->
-            <div class="w-full max-w-md aspect-square bg-[#07050f] border-2 border-dashed border-cyber-secondary/30 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center transition-all duration-500 shadow-inner group mt-4" id="drop-zone">
-                
-                <!-- תצוגה לפני העלאה -->
-                <div id="upload-prompt" class="text-center p-6 space-y-4">
-                    <div class="w-20 h-20 rounded-full bg-cyber-secondary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-cyber-secondary"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg">גרור לכאן את תמונת הסלפי שלך</h3>
-                        <p class="text-sm text-gray-400 mt-1">או לחץ על אחד הכפתורים למטה</p>
-                    </div>
-                    <div class="flex gap-3 justify-center pt-2">
-                        <button onclick="document.getElementById('file-input').click()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition duration-200">
-                            <i class="fa-regular fa-image ml-1.5"></i> בחר מהגלריה
-                        </button>
-                        <button id="webcam-btn" onclick="startCamera()" class="bg-cyber-primary hover:bg-cyber-primary/90 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-neon-pink transition duration-200">
-                            <i class="fa-solid fa-camera ml-1.5"></i> צלם סלפי
-                        </button>
-                    </div>
-                </div>
-
-                <!-- תצוגת המצלמה (Webcam) -->
-                <video id="webcam" class="hidden w-full h-full object-cover rounded-2xl" autoplay playsinline></video>
-                <button id="capture-btn" onclick="capturePhoto()" class="hidden absolute bottom-6 bg-cyber-primary hover:bg-cyber-primary/90 text-white font-bold p-4 rounded-full shadow-neon-pink transition duration-200 z-10">
-                    <i class="fa-solid fa-camera text-xl"></i>
-                </button>
-
-                <!-- סביבת עבודת Canvas אינטראקטיבית לעריכה -->
-                <div id="canvas-container" class="hidden w-full h-full relative">
-                    <canvas id="editor-canvas" class="w-full h-full object-contain rounded-2xl"></canvas>
-                    <!-- שכבת מדבקות (אינטראקטיבית) -->
-                    <div id="stickers-layer" class="absolute inset-0 pointer-events-none"></div>
-                </div>
-
-                <!-- מסך טעינה של AI בעת "הפקת" התמונה -->
-                <div id="ai-loader" class="hidden absolute inset-0 bg-cyber-bg/95 backdrop-blur-md flex-col items-center justify-center space-y-6 z-30">
-                    <div class="relative w-24 h-24">
-                        <div class="absolute inset-0 border-4 border-cyber-primary/20 rounded-full"></div>
-                        <div class="absolute inset-0 border-4 border-t-cyber-primary border-r-cyber-secondary rounded-full animate-spin"></div>
-                        <div class="absolute inset-4 rounded-full bg-cyber-card flex items-center justify-center">
-                            <i class="fa-solid fa-brain text-2xl text-cyber-primary animate-pulse"></i>
-                        </div>
-                    </div>
-                    <div class="text-center space-y-2">
-                        <h4 class="font-extrabold text-lg text-cyber-secondary animate-pulse" id="loader-status">מעבד נתוני פנים...</h4>
-                        <p class="text-xs text-gray-400" id="loader-subtitle">מפעיל רשתות נוירונים של סייבר-פאנק</p>
-                    </div>
-                    <div class="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-cyber-primary to-cyber-secondary w-0 transition-all duration-300" id="ai-progress"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- קלט קבצים מוסתר -->
-            <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
-            
-            <p class="text-xs text-gray-400 text-center mt-4">
-                🔒 התמונה שלך מעובדת ישירות על המכשיר שלך ואינה נשלחת לשום שרת.
-            </p>
-        </section>
-
-        <!-- עמודה ימנית: בקרים, פילטרים ומדבקות (5 עמודות) -->
-        <section class="lg:col-span-5 space-y-6">
-            
-            <!-- כרטיסיית פילטרים וסטייל -->
-            <div class="bg-cyber-card/60 border border-white/5 rounded-3xl p-6 backdrop-blur-md space-y-4">
-                <h3 class="font-extrabold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-palette text-cyber-secondary"></i>
-                    <span>בחר סגנון סייבר-פאנק</span>
-                </h3>
-                
-                <div class="grid grid-cols-2 gap-3" id="style-grid">
-                    <button onclick="applyStyle('neon-pink')" class="style-card bg-white/5 hover:bg-cyber-primary/10 border border-white/10 hover:border-cyber-primary rounded-2xl p-3.5 text-right transition duration-200 group flex flex-col justify-between aspect-[4/3]" disabled>
-                        <span class="w-8 h-8 rounded-lg bg-cyber-primary/20 text-cyber-primary flex items-center justify-center group-hover:scale-110 transition duration-200"><i class="fa-solid fa-bolt"></i></span>
-                        <span class="font-bold text-sm block mt-2">ורוד ניאון פראי</span>
-                    </button>
-                    <button onclick="applyStyle('hacker-blue')" class="style-card bg-white/5 hover:bg-cyber-secondary/10 border border-white/10 hover:border-cyber-secondary rounded-2xl p-3.5 text-right transition duration-200 group flex flex-col justify-between aspect-[4/3]" disabled>
-                        <span class="w-8 h-8 rounded-lg bg-cyber-secondary/20 text-cyber-secondary flex items-center justify-center group-hover:scale-110 transition duration-200"><i class="fa-solid fa-terminal"></i></span>
-                        <span class="font-bold text-sm block mt-2">האקר דיגיטלי</span>
-                    </button>
-                    <button onclick="applyStyle('synthwave')" class="style-card bg-white/5 hover:bg-cyber-accent/10 border border-white/10 hover:border-cyber-accent rounded-2xl p-3.5 text-right transition duration-200 group flex flex-col justify-between aspect-[4/3]" disabled>
-                        <span class="w-8 h-8 rounded-lg bg-cyber-accent/20 text-cyber-accent flex items-center justify-center group-hover:scale-110 transition duration-200"><i class="fa-solid fa-cloud-moon"></i></span>
-                        <span class="font-bold text-sm block mt-2">סינת'ווייב רטרו</span>
-                    </button>
-                    <button onclick="applyStyle('matrix')" class="style-card bg-white/5 hover:bg-cyber-success/10 border border-white/10 hover:border-cyber-success rounded-2xl p-3.5 text-right transition duration-200 group flex flex-col justify-between aspect-[4/3]" disabled>
-                        <span class="w-8 h-8 rounded-lg bg-cyber-success/20 text-cyber-success flex items-center justify-center group-hover:scale-110 transition duration-200"><i class="fa-solid fa-code"></i></span>
-                        <span class="font-bold text-sm block mt-2">קוד המטריקס</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- בקרים להתאמה ידנית של התמונה -->
-            <div class="bg-cyber-card/60 border border-white/5 rounded-3xl p-6 backdrop-blur-md space-y-4">
-                <h3 class="font-extrabold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-cyber-primary"></i>
-                    <span>כוון את עוצמת האפקט</span>
-                </h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold mb-1.5">
-                            <span>זוהר ורוד</span>
-                            <span id="glow-val">50%</span>
-                        </div>
-                        <input type="range" id="glow-slider" min="0" max="100" value="50" oninput="updateSliders()" class="w-full accent-cyber-primary bg-white/10 rounded-lg h-2" disabled>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold mb-1.5">
-                            <span>אפקט גליץ' (עיוות פיקסלים)</span>
-                            <span id="glitch-val">20%</span>
-                        </div>
-                        <input type="range" id="glitch-slider" min="0" max="100" value="20" oninput="updateSliders()" class="w-full accent-cyber-secondary bg-white/10 rounded-lg h-2" disabled>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold mb-1.5">
-                            <span>ניגודיות צבעים</span>
-                            <span id="contrast-val">120%</span>
-                        </div>
-                        <input type="range" id="contrast-slider" min="50" max="200" value="120" oninput="updateSliders()" class="w-full accent-cyber-accent bg-white/10 rounded-lg h-2" disabled>
-                    </div>
-                </div>
-            </div>
-
-            <!-- כרטיסיית מדבקות אינטראקטיביות (מדליק במיוחד!) -->
-            <div class="bg-cyber-card/60 border border-white/5 rounded-3xl p-6 backdrop-blur-md space-y-4">
-                <h3 class="font-extrabold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-glasses text-cyber-accent"></i>
-                    <span>הוסף אביזרי סייבר</span>
-                </h3>
-                <div class="flex gap-3 overflow-x-auto pb-2 justify-start scrollbar-thin scrollbar-thumb-white/10" id="stickers-panel">
-                    <!-- מדבקה 1: משקפי שמש עתידניים -->
-                    <button onclick="addSticker('glasses')" class="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-3 text-center transition duration-200" disabled>
-                        <span class="text-3xl">🕶️</span>
-                        <span class="text-[10px] block mt-1 text-gray-400">משקפי סייבר</span>
-                    </button>
-                    <!-- מדבקה 2: מסכת חמצן דיגיטלית -->
-                    <button onclick="addSticker('mask')" class="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-3 text-center transition duration-200" disabled>
-                        <span class="text-3xl">😷</span>
-                        <span class="text-[10px] block mt-1 text-gray-400">מסכת ניאון</span>
-                    </button>
-                    <!-- מדבקה 3: קרן לייזר מהעין -->
-                    <button onclick="addSticker('laser')" class="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-3 text-center transition duration-200" disabled>
-                        <span class="text-3xl">👁️‍🗨️</span>
-                        <span class="text-[10px] block mt-1 text-gray-400">לייזר סייבר</span>
-                    </button>
-                    <!-- מדבקה 4: ממשק מידע (HUD) -->
-                    <button onclick="addSticker('hud')" class="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-3 text-center transition duration-200" disabled>
-                        <span class="text-3xl">🌐</span>
-                        <span class="text-[10px] block mt-1 text-gray-400">כוונת HUD</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- כפתורי פעולה מרכזיים להורדה וייצוא -->
-            <div class="flex gap-4">
-                <button id="reset-btn" onclick="resetEditor()" class="w-1/3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-4 rounded-2xl transition duration-300 flex items-center justify-center gap-2" disabled>
-                    <i class="fa-solid fa-trash-can"></i>
-                    איפוס
-                </button>
-                <button id="generate-btn" onclick="generateViralAvatar()" class="w-2/3 bg-gradient-to-r from-cyber-primary via-cyber-accent to-cyber-secondary hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-neon-glow transition duration-300 flex items-center justify-center gap-2" disabled>
-                    <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
-                    הפק אווטאר ויראלי!
-                </button>
-            </div>
-
-            <!-- כפתור שמירה והורדה סופי -->
-            <button id="download-btn" onclick="downloadAvatar()" class="hidden w-full bg-cyber-success hover:bg-cyber-success/90 text-cyber-bg font-extrabold py-4 rounded-2xl shadow-neon-blue transition duration-300 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-circle-down text-lg"></i>
-                שמור אווטאר עכשיו!
-            </button>
-
-        </section>
-    </main>
-
-    <!-- סרגל תחתון (Footer) -->
-    <footer class="border-t border-white/5 py-6 bg-[#040209] mt-12">
-        <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500 space-y-2">
-            <p>© 2026 PersonaAI Viral Avatar Studio. כל הזכויות שמורות.</p>
-            <p>פותח כיישום רשת מתקדם (PWA) הניתן להתקנה ישירות מחנות ה-Google Play Store.</p>
+    
+    <div class="container">
+        <div class="viewport" id="viewport">
+            <!-- התצוגה המקדימה של המצלמה -->
+            <video id="video" autoplay playsinline></video>
+            <!-- הציור הנסתר ללכידת הפריים -->
+            <canvas id="canvas"></canvas>
+            <!-- התמונה הסופית -->
+            <img id="resultImg" alt="AI Result">
+            <!-- אפקטים לממשק -->
+            <div class="scanner" id="scanner"></div>
+            <div class="status" id="statusText">מתחבר למנוע AI...</div>
         </div>
-    </footer>
+        
+        <div class="controls">
+            <button id="switchCameraBtn"><i class="fas fa-sync-alt"></i></button>
+            <button id="captureBtn"><i class="fas fa-camera"></i></button>
+            <button id="retakeBtn"><i class="fas fa-undo"></i></button>
+            <button id="downloadBtn"><i class="fas fa-download"></i></button>
+        </div>
+    </div>
 
-    <!-- מנוע העריכה של האפליקציה (JavaScript) -->
     <script>
-        // משתנים גלובליים
-        let currentImage = null;
-        let activeStyle = 'neon-pink';
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultImg = document.getElementById('resultImg');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const scanner = document.getElementById('scanner');
+        const statusText = document.getElementById('statusText');
+        const viewport = document.getElementById('viewport');
+
+        let currentFacingMode = 'user';
         let stream = null;
-        const canvas = document.getElementById('editor-canvas');
-        const ctx = canvas.getContext('2d');
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // אפקטים קוליים טכנולוגיים (Web Audio API)
-        function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+        // הפעלת מצלמה
+        async function initCamera() {
+            if (stream) stream.getTracks().forEach(track => track.stop());
             try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                // מונע קריסה בדפדפנים שחוסמים אודיו לפני אינטראקציה
-            }
-        }
-
-        // פתיחת המצלמה במכשיר
-        async function startCamera() {
-            playBeep(600, 0.1, 'triangle');
-            const video = document.getElementById('webcam');
-            const uploadPrompt = document.getElementById('upload-prompt');
-            const captureBtn = document.getElementById('capture-btn');
-
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user" }, 
-                    audio: false 
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: { ideal: 1080 }, height: { ideal: 1440 } }
                 });
                 video.srcObject = stream;
-                video.classList.remove('hidden');
-                uploadPrompt.classList.add('hidden');
-                captureBtn.classList.remove('hidden');
             } catch (err) {
-                alert("לא הצלחנו לגשת למצלמה. ודא שאישרת הרשאות מצלמה בדפדפן.");
+                statusText.innerText = "שגיאה: אין גישה למצלמה";
+                statusText.style.display = 'block';
             }
         }
 
-        // לכידת תמונה מהמצלמה
-        function capturePhoto() {
-            playBeep(800, 0.15, 'sawtooth');
-            const video = document.getElementById('webcam');
-            const captureBtn = document.getElementById('capture-btn');
-            
-            // יצירת קנבס זמני לחיתוך הלכידה
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = video.videoWidth;
-            tempCanvas.height = video.videoHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-            
-            const img = new Image();
-            img.onload = function() {
-                loadImageToCanvas(img);
-                stopCameraStream();
-                video.classList.add('hidden');
-                captureBtn.classList.add('hidden');
-            };
-            img.src = tempCanvas.toDataURL('image/png');
-        }
+        // החלפת מצלמה (קדמית/אחורית)
+        switchCameraBtn.addEventListener('click', () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            initCamera();
+        });
 
-        // עצירת המצלמה
-        function stopCameraStream() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
+        // צילום
+        captureBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // היפוך מראה אם מצלמה קדמית
+            if (currentFacingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
             }
-        }
-
-        // טיפול בהעלאת תמונה מהגלריה
-        function handleFileSelect(event) {
-            playBeep(500, 0.08, 'sine');
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    loadImageToCanvas(img);
-                    document.getElementById('upload-prompt').classList.add('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // טעינת התמונה אל תוך ה-Canvas הראשי
-        function loadImageToCanvas(img) {
-            currentImage = img;
-            const container = document.getElementById('canvas-container');
-            container.classList.remove('hidden');
+            ctx.drawImage(video, 0, 0);
             
-            // קביעת מידות הקנבס בהתאם לתמונה
-            canvas.width = 800;
-            canvas.height = 800;
+            // שינוי מצב ממשק בזמן עיבוד
+            video.pause();
+            captureBtn.style.display = 'none';
+            switchCameraBtn.style.display = 'none';
+            scanner.style.display = 'block';
+            statusText.style.display = 'block';
+            statusText.innerText = "יוצר אווטאר תלת מימדי...";
+            viewport.style.borderColor = "var(--primary)";
+
+            // המרה ל-Base64 כדי לשלוח ל-API
+            const imageDataBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+            // הפעלת הפונקציה שתתקשר עם השרת
+            processWithAI(imageDataBase64);
+        });
+
+        // פונקציית הליבה - כאן יוכנס חיבור ה-API האמיתי בהמשך
+        function processWithAI(base64Image) {
             
-            // הפעלת כל הפקדים והלחצנים בעמוד
-            enableControls(true);
-            
-            // ציור ראשוני
-            drawEditorState();
+            // ==========================================
+            // במערכת אמיתית, כאן תהיה קריאת FETCH למודל AI
+            // לדוגמה:
+            // fetch('https://api.your-server.com/generate', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ image: base64Image, style: 'cyberpunk' })
+            // })
+            // ==========================================
+
+            // סימולציה של זמן עיבוד במנוע בינה מלאכותית (3 שניות)
+            setTimeout(() => {
+                // כרגע נציג את התמונה עם פילטר מתקדם רק כדי לסגור את המעגל
+                resultImg.src = base64Image;
+                resultImg.style.filter = "contrast(1.2) saturate(1.3) sepia(0.3) hue-rotate(-20deg)";
+                showResult();
+            }, 3000);
         }
 
-        // הפעלת/כיבוי הבקרים
-        function enableControls(enable) {
-            const controls = [
-                'glow-slider', 'glitch-slider', 'contrast-slider',
-                'generate-btn', 'reset-btn'
-            ];
-            controls.forEach(id => {
-                document.getElementById(id).disabled = !enable;
-            });
-
-            // הפעלת כרטיסיות הסגנונות
-            document.querySelectorAll('.style-card').forEach(btn => btn.disabled = !enable);
-            // הפעלת המדבקות
-            document.querySelectorAll('#stickers-panel button').forEach(btn => btn.disabled = !enable);
+        function showResult() {
+            scanner.style.display = 'none';
+            statusText.style.display = 'none';
+            video.style.display = 'none';
+            resultImg.style.display = 'block';
+            retakeBtn.style.display = 'flex';
+            downloadBtn.style.display = 'flex';
+            viewport.style.borderColor = "var(--secondary)";
+            viewport.style.boxShadow = "0 0 30px rgba(188, 19, 254, 0.2)";
         }
 
-        // פונקציית ציור מצב העריכה הנוכחי
-        function drawEditorState() {
-            if (!currentImage) return;
+        // צילום מחדש
+        retakeBtn.addEventListener('click', () => {
+            resultImg.style.display = 'none';
+            video.style.display = 'block';
+            video.play();
+            retakeBtn.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            captureBtn.style.display = 'flex';
+            switchCameraBtn.style.display = 'flex';
+            viewport.style.borderColor = "#2a2a40";
+            viewport.style.boxShadow = "none";
+            resultImg.style.filter = "none";
+        });
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 1. ציור התמונה המקורית במרכז הקנבס (עם שמירה על יחס גובה-רוחב)
-            const scale = Math.min(canvas.width / currentImage.width, canvas.height / currentImage.height);
-            const x = (canvas.width / 2) - (currentImage.width / 2) * scale;
-            const y = (canvas.height / 2) - (currentImage.height / 2) * scale;
-            ctx.drawImage(currentImage, x, y, currentImage.width * scale, currentImage.height * scale);
-
-            // 2. הפעלת מנוע פילטרים ידני מותאם אישית (Duotone Cyber Filter)
-            const contrast = document.getElementById('contrast-slider').value / 100;
-            applyDuotoneEffect(activeStyle, contrast);
-            
-            // 3. הוספת אפקט גליץ' עדין (Glitch Overlay)
-            const glitchLevel = document.getElementById('glitch-slider').value;
-            if (glitchLevel > 5) {
-                applyGlitchLines(glitchLevel);
-            }
-
-            // 4. הוספת אפקט זוהר ניאון היקפי (Vignette Glow)
-            const glowLevel = document.getElementById('glow-slider').value;
-            applyNeonGlowOverlay(activeStyle, glowLevel);
-        }
-
-        // עדכון ערכי הסליידרים וציור מחדש
-        function updateSliders() {
-            document.getElementById('glow-val').innerText = document.getElementById('glow-slider').value + "%";
-            document.getElementById('glitch-val').innerText = document.getElementById('glitch-slider').value + "%";
-            document.getElementById('contrast-val').innerText = document.getElementById('contrast-slider').value + "%";
-            drawEditorState();
-        }
-
-        // שינוי סגנון הצבעים הראשי
-        function applyStyle(styleName) {
-            playBeep(700, 0.08, 'triangle');
-            activeStyle = styleName;
-            
-            // סימון ויזואלי של הכפתור הנבחר
-            document.querySelectorAll('.style-card').forEach(btn => {
-                btn.classList.remove('border-cyber-primary', 'border-cyber-secondary', 'border-cyber-accent', 'border-cyber-success', 'bg-white/10');
-            });
-            drawEditorState();
-        }
-
-        // מנוע פילטרים Duotone לביצועים מהירים ואפקט סייברפאנק אותנטי
-        function applyDuotoneEffect(style, contrast) {
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
-
-            // הגדרת צבעי סייברפאנק לפי הסגנון הנבחר
-            let c1 = { r: 255, g: 51, b: 102 }; // ורוד ניאון
-            let c2 = { r: 0, g: 240, b: 255 };  // כחול האקר
-
-            if (style === 'hacker-blue') {
-                c1 = { r: 0, g: 150, b: 255 };
-                c2 = { r: 10, g: 25, b: 50 };
-            } else if (style === 'synthwave') {
-                c1 = { r: 157, g: 0, b: 255 };
-                c2 = { r: 255, g: 234, b: 0 };
-            } else if (style === 'matrix') {
-                c1 = { r: 57, g: 255, b: 20 };
-                c2 = { r: 5, g: 20, b: 5 };
-            }
-
-            for (let i = 0; i < data.length; i += 4) {
-                // בדיקה שהפיקסל אינו שקוף לחלוטין
-                if (data[i+3] === 0) continue;
-
-                // 1. הפיכת התמונה לגווני אפור
-                let r = data[i];
-                let g = data[i+1];
-                let b = data[i+2];
-                let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-
-                // 2. החלת ניגודיות (Contrast)
-                gray = ((gray / 255 - 0.5) * contrast + 0.5) * 255;
-                gray = Math.max(0, Math.min(255, gray)) / 255;
-
-                // 3. מיפוי גווני האפור לצבעי סייברפאנק (Duotone)
-                data[i] = gray * c1.r + (1 - gray) * c2.r;
-                data[i+1] = gray * c1.g + (1 - gray) * c2.g;
-                data[i+2] = gray * c1.b + (1 - gray) * c2.b;
-            }
-            ctx.putImageData(imgData, 0, 0);
-        }
-
-        // החלת קווי גליץ' ועיוות דיגיטלי בזמן אמת
-        function applyGlitchLines(level) {
-            const linesCount = Math.floor(level / 8);
-            for (let i = 0; i < linesCount; i++) {
-                const y = Math.floor(Math.random() * canvas.height);
-                const h = Math.floor(Math.random() * 25) + 5;
-                const shift = (Math.random() * level * 1.5) - (level * 0.75);
-
-                // הזזת רצועת פיקסלים שמאלה או ימינה לקבלת עיוות אותנטי
-                const slice = ctx.getImageData(0, y, canvas.width, h);
-                ctx.putImageData(slice, shift, y);
-            }
-        }
-
-        // שכבת זוהר היקפית (Neon Vignette Glow)
-        function applyNeonGlowOverlay(style, intensity) {
-            let color = 'rgba(255, 51, 102, ';
-            if (style === 'hacker-blue') color = 'rgba(0, 240, 255, ';
-            if (style === 'synthwave') color = 'rgba(157, 0, 255, ';
-            if (style === 'matrix') color = 'rgba(57, 255, 20, ';
-
-            const alpha = (intensity / 100) * 0.35;
-            
-            const gradient = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, canvas.width / 3,
-                canvas.width / 2, canvas.height / 2, canvas.width / 1.4
-            );
-            gradient.addColorStop(0, 'rgba(0,0,0,0)');
-            gradient.addColorStop(1, color + alpha + ')');
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // הוספת מדבקות אינטראקטיביות שניתנות לגרירה
-        function addSticker(type) {
-            playBeep(900, 0.1, 'sine');
-            const stickersLayer = document.getElementById('stickers-layer');
-            const sticker = document.createElement('div');
-            sticker.className = 'cyber-sticker text-5xl absolute pointer-events-auto select-none touch-none';
-            
-            let emoji = '🕶️';
-            if (type === 'mask') emoji = '😷';
-            if (type === 'laser') emoji = '🔴';
-            if (type === 'hud') emoji = '🎯';
-
-            sticker.innerHTML = `
-                <div class="relative group">
-                    <span class="sticker-content select-none">${emoji}</span>
-                    <button class="absolute -top-3 -right-3 w-5 h-5 bg-cyber-primary rounded-full text-[10px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-neon-pink" onclick="this.closest('.cyber-sticker').remove()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            `;
-            
-            // הגדרת מיקום התחלתי במרכז
-            sticker.style.left = '45%';
-            sticker.style.top = '45%';
-            
-            stickersLayer.appendChild(sticker);
-            makeElementDraggable(sticker);
-        }
-
-        // פונקציית גרירה למדבקות
-        function makeElementDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            
-            element.onmousedown = dragMouseDown;
-            element.ontouchstart = dragMouseDown;
-
-            function dragMouseDown(e) {
-                e = e || window.event;
-                e.preventDefault();
-                
-                // תמיכה בעכבר ובמגע אצבע
-                pos3 = e.clientX || e.touches[0].clientX;
-                pos4 = e.clientY || e.touches[0].clientY;
-                
-                document.onmouseup = closeDragElement;
-                document.ontouchend = closeDragElement;
-                document.onmousemove = elementDrag;
-                document.ontouchmove = elementDrag;
-            }
-
-            function elementDrag(e) {
-                e = e || window.event;
-                
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
-
-                pos1 = pos3 - clientX;
-                pos2 = pos4 - clientY;
-                pos3 = clientX;
-                pos4 = clientY;
-                
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.ontouchend = null;
-                document.onmousemove = null;
-                document.ontouchmove = null;
-            }
-        }
-
-        // הפקת האוואטר הסופי באמצעות AI (סימולציה וגרפיקה מתקדמת)
-        function generateViralAvatar() {
-            playBeep(300, 0.4, 'sawtooth');
-            const loader = document.getElementById('ai-loader');
-            const progress = document.getElementById('ai-progress');
-            const status = document.getElementById('loader-status');
-            const genBtn = document.getElementById('generate-btn');
-            
-            loader.classList.remove('hidden');
-            genBtn.disabled = true;
-
-            const stages = [
-                { percent: 20, text: "סורק תווי פנים ועיניים..." },
-                { percent: 45, text: "מחיל מסנני סייבר-פאנק וניאון..." },
-                { percent: 70, text: "ממזג מדבקות ועצמים דיגיטליים..." },
-                { percent: 90, text: "מעבד את הרקע הדיגיטלי..." },
-                { percent: 100, text: "האוואטר שלך מוכן!" }
-            ];
-
-            let stageIdx = 0;
-
-            function processNextStage() {
-                if (stageIdx < stages.length) {
-                    const stage = stages[stageIdx];
-                    status.innerText = stage.text;
-                    progress.style.width = stage.percent + "%";
-                    playBeep(400 + (stage.percent * 3), 0.1, 'sine');
-                    
-                    stageIdx++;
-                    setTimeout(processNextStage, 800);
-                } else {
-                    // סיום מושלם של עיבוד ה-AI
-                    renderStickersToCanvas();
-                    loader.classList.add('hidden');
-                    document.getElementById('download-btn').classList.remove('hidden');
-                }
-            }
-
-            setTimeout(processNextStage, 300);
-        }
-
-        // שילוב המדבקות מהשכבה העליונה ישירות אל תוך ה-Canvas לצורך הורדה נקייה
-        function renderStickersToCanvas() {
-            const container = document.getElementById('canvas-container');
-            const containerRect = container.getBoundingClientRect();
-            const stickers = document.querySelectorAll('.cyber-sticker');
-
-            stickers.forEach(sticker => {
-                const rect = sticker.getBoundingClientRect();
-                const content = sticker.querySelector('.sticker-content').innerText;
-
-                // חישוב קואורדינטות יחסיות לקנבס הראשי
-                const relativeX = ((rect.left - containerRect.left) / containerRect.width) * canvas.width;
-                const relativeY = ((rect.top - containerRect.top) / containerRect.height) * canvas.height;
-
-                // ציור הטקסט (האימוג'י של המדבקה) ישירות על ה-Canvas
-                ctx.font = "90px Arial";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(content, relativeX + 45, relativeY + 45);
-                
-                // הסרת המדבקה האינטראקטיבית מהמסך כדי שלא תפריע בהמשך
-                sticker.remove();
-            });
-        }
-
-        // שמירה והורדה של התמונה למכשיר
-        function downloadAvatar() {
-            playBeep(1000, 0.25, 'sine');
-            
-            // תמיכה בהורדה ישירה
+        // הורדת התמונה
+        downloadBtn.addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = 'PersonaAI-Viral-Avatar.png';
-            link.href = canvas.toDataURL('image/png');
+            link.download = 'PersonaAI_Avatar.jpg';
+            link.href = resultImg.src;
             link.click();
-        }
-
-        // איפוס סטודיו העריכה
-        function resetEditor() {
-            playBeep(200, 0.15, 'triangle');
-            stopCameraStream();
-            
-            currentImage = null;
-            document.getElementById('canvas-container').classList.add('hidden');
-            document.getElementById('upload-prompt').classList.remove('hidden');
-            document.getElementById('webcam').classList.add('hidden');
-            document.getElementById('capture-btn').classList.add('hidden');
-            document.getElementById('download-btn').classList.add('hidden');
-            document.getElementById('stickers-layer').innerHTML = '';
-            
-            enableControls(false);
-        }
-
-        // רישום ה-Service Worker (PWA) משורש התיקייה
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('Service Worker רשום בהצלחה!', reg))
-                    .catch(err => console.log('רישום ה-Service Worker נכשל:', err));
-            });
-        }
-
-        // ניהול כפתור התקנת האפליקציה (PWA Installation)
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden');
         });
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.classList.add('hidden');
-                }
-                deferredPrompt = null;
-            }
-        });
+        // הפעלה ראשונית
+        initCamera();
     </script>
 </body>
 </html>
