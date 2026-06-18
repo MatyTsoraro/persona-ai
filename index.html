@@ -20,13 +20,11 @@
         img { display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; }
         canvas { display: none; }
         
-        /* סורק ואפקט טעינה */
         .scanner-container { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 3; display: none; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
         .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); box-shadow: 0 0 20px 5px var(--primary); animation: scan 1.5s ease-in-out infinite alternate; }
         .overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); text-align: center; width: 85%; line-height: 1.5;}
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* אזור תחתון */
         .bottom-area { width: 100%; max-width: 400px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 20px;}
         
         .camera-controls { display: flex; justify-content: space-around; align-items: center; width: 100%; }
@@ -35,10 +33,16 @@
         
         #captureBtn { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; width: 85px; height: 85px; font-size: 2.5rem; box-shadow: 0 0 20px rgba(188, 19, 254, 0.4); color: white;}
 
-        /* תפריט סגנונות גלוי ונגלל */
-        #styleMenu { display: none; flex-direction: column; width: 100%; gap: 15px; overflow-y: auto; max-height: 35vh;}
+        #styleMenu { display: none; flex-direction: column; width: 100%; gap: 15px; overflow-y: auto; max-height: 40vh; padding-right: 5px;}
+        
+        /* אזור הקלדת טקסט חופשי */
+        .custom-prompt { display: flex; gap: 8px; margin-bottom: 10px; }
+        .custom-prompt input { flex: 1; padding: 12px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; direction: ltr; text-align: left; font-size: 0.95rem;}
+        .custom-prompt input:focus { border-color: var(--primary); }
+        .custom-prompt button { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; padding: 0 20px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;}
+
         .category { margin-bottom: 5px; }
-        .category-title { font-size: 0.9rem; color: #888; margin-bottom: 8px; padding-right: 5px; font-weight: bold;}
+        .category-title { font-size: 0.9rem; color: #888; margin-bottom: 8px; font-weight: bold;}
         .style-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
         .style-scroll::-webkit-scrollbar { display: none; }
         
@@ -49,10 +53,8 @@
         
         .cat-fantasy i { color: #bc13fe; }
         .cat-cinema i { color: #ffb800; }
-        .cat-art i { color: #00f3ff; }
         .cat-pro i { color: #00ff88; }
 
-        /* מסך תוצאה */
         #resultControls { display: none; width: 100%; flex-direction: column; gap: 10px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; cursor: pointer; color: white;}
         #waBtn { background: #25D366; }
@@ -75,8 +77,8 @@
                 <div class="scanner-line"></div>
                 <div class="overlay-text">
                     <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
-                    מפעיל מנוע בינה מלאכותית...<br>
-                    <span style="font-size: 0.8rem; color: #fff; font-weight: normal;">זה עשוי לקחת עד 20 שניות</span>
+                    מעבד יצירת מופת...<br>
+                    <span style="font-size: 0.8rem; color: #fff; font-weight: normal;">זה עשוי לקחת עד חצי דקה</span>
                 </div>
             </div>
         </div>
@@ -90,39 +92,20 @@
 
             <div id="styleMenu">
                 <div class="category">
-                    <div class="category-title">פנטזיה וגיימינג</div>
-                    <div class="style-scroll">
-                        <div class="style-card cat-fantasy" onclick="applyStyle('jedi_master')"><i class="fab fa-jedi-order"></i><span>אביר ג'דיי</span></div>
-                        <div class="style-card cat-fantasy" onclick="applyStyle('viking_king')"><i class="fas fa-gavel"></i><span>מלך ויקינגי</span></div>
-                        <div class="style-card cat-fantasy" onclick="applyStyle('space_marine')"><i class="fas fa-rocket"></i><span>לוחם חלל</span></div>
-                        <div class="style-card cat-fantasy" onclick="applyStyle('warlock')"><i class="fas fa-fire-alt"></i><span>מכשף אופל</span></div>
-                    </div>
-                </div>
-                
-                <div class="category">
-                    <div class="category-title">קולנוע ותיאטרון</div>
-                    <div class="style-scroll">
-                        <div class="style-card cat-cinema" onclick="applyStyle('mafia_boss')"><i class="fas fa-user-tie"></i><span>בוס מאפיה</span></div>
-                        <div class="style-card cat-cinema" onclick="applyStyle('gladiator')"><i class="fas fa-shield-alt"></i><span>גלדיאטור</span></div>
-                        <div class="style-card cat-cinema" onclick="applyStyle('samurai')"><i class="fas fa-yin-yang"></i><span>סמוראי</span></div>
+                    <div class="category-title">יצירה חופשית (הקלד באנגלית בלבד)</div>
+                    <div class="custom-prompt">
+                        <input type="text" id="customInput" placeholder="A bald man with beard as a gladiator">
+                        <button id="customBtn">צור</button>
                     </div>
                 </div>
 
                 <div class="category">
-                    <div class="category-title">אמנות ואווטארים</div>
-                    <div class="style-scroll">
-                        <div class="style-card cat-art" onclick="applyStyle('pixar_character')"><i class="fas fa-smile-beam"></i><span>פיקסאר 3D</span></div>
-                        <div class="style-card cat-art" onclick="applyStyle('manga_style')"><i class="fas fa-book-open"></i><span>אנימה / מנגה</span></div>
-                        <div class="style-card cat-art" onclick="applyStyle('oil_painting')"><i class="fas fa-palette"></i><span>ציור שמן</span></div>
-                        <div class="style-card cat-art" onclick="applyStyle('statue')"><i class="fas fa-monument"></i><span>פסל שיש</span></div>
-                    </div>
-                </div>
-
-                <div class="category">
-                    <div class="category-title">פרופיל מקצועי (לינקדאין)</div>
+                    <div class="category-title">תבניות מהירות</div>
                     <div class="style-scroll">
                         <div class="style-card cat-pro" onclick="applyStyle('tech_ceo')"><i class="fas fa-briefcase"></i><span>מנכ"ל הייטק</span></div>
-                        <div class="style-card cat-pro" onclick="applyStyle('ted_talk')"><i class="fas fa-microphone-alt"></i><span>מרצה ב-TED</span></div>
+                        <div class="style-card cat-cinema" onclick="applyStyle('gladiator')"><i class="fas fa-shield-alt"></i><span>גלדיאטור</span></div>
+                        <div class="style-card cat-fantasy" onclick="applyStyle('jedi_master')"><i class="fab fa-jedi-order"></i><span>אביר ג'דיי</span></div>
+                        <div class="style-card cat-cinema" onclick="applyStyle('mafia_boss')"><i class="fas fa-user-tie"></i><span>בוס מאפיה</span></div>
                     </div>
                 </div>
             </div>
@@ -147,9 +130,8 @@
         const styleMenu = document.getElementById('styleMenu');
         const resultControls = document.getElementById('resultControls');
 
-        const waBtn = document.getElementById('waBtn');
-        const dlBtn = document.getElementById('dlBtn');
-        const rtBtn = document.getElementById('rtBtn');
+        const customBtn = document.getElementById('customBtn');
+        const customInput = document.getElementById('customInput');
 
         let currentFacingMode = 'user';
         let stream = null;
@@ -158,25 +140,12 @@
         const API_URL = "https://billowing-shape-1d81.maty-tsoraro.workers.dev";
 
         async function initCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
+            if (stream) stream.getTracks().forEach(track => track.stop());
             try {
-                // המנגנון המעודכן והיציב למצלמה
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: currentFacingMode } 
-                });
-                
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 video.srcObject = stream;
-                
-                // ממתין בשקט שהעדשה תהיה מוכנה לפני הפעלה
-                video.onloadedmetadata = () => {
-                    video.play().catch(err => console.error("שגיאת הפעלה פנימית:", err));
-                };
-                
-            } catch (err) {
-                alert("שגיאה בגישה למצלמה: " + err.message);
-            }
+                video.onloadedmetadata = () => video.play();
+            } catch (err) { alert("שגיאה במצלמה"); }
         }
 
         switchCameraBtn.addEventListener('click', () => {
@@ -188,20 +157,24 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-            
-            if (currentFacingMode === 'user') {
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
-            }
+            if (currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(video, 0, 0);
-            
             capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
             resultImg.src = capturedImageBase64;
             resultImg.style.display = 'block';
             video.style.display = 'none';
-
             cameraControls.style.display = 'none';
             styleMenu.style.display = 'flex';
+        });
+
+        // האזנה לכפתור "יצירה חופשית"
+        customBtn.addEventListener('click', () => {
+            const val = customInput.value.trim();
+            if(!val) {
+                alert('אנא הקלד תיאור באנגלית (למשל: astronaut on mars)');
+                return;
+            }
+            applyStyle(val);
         });
 
         window.applyStyle = async function(styleName) {
@@ -216,20 +189,14 @@
                 });
 
                 const data = await response.json();
-
-                if (data.error) {
-                    alert("שגיאה בשרת: " + data.error);
-                    resetCamera();
-                    return;
-                }
+                if (data.error) throw new Error(data.error);
 
                 resultImg.src = data.resultUrl;
-                
                 scanner.style.display = 'none';
                 resultControls.style.display = 'flex';
 
             } catch (err) {
-                alert("שגיאת תקשורת: " + err.message);
+                alert("שגיאה: " + err.message);
                 resetCamera();
             }
         };
@@ -241,6 +208,7 @@
             resultControls.style.display = 'none';
             styleMenu.style.display = 'none';
             cameraControls.style.display = 'flex';
+            customInput.value = ''; // ניקוי התיבה
         }
 
         rtBtn.addEventListener('click', resetCamera);
@@ -250,36 +218,17 @@
                 const response = await fetch(resultImg.src);
                 const blob = await response.blob();
                 const file = new File([blob], 'Avatar.jpg', { type: 'image/jpeg' });
-                
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'האווטאר שלי',
-                        text: 'יצרתי את זה ב-Viral Avatar Studio! 🚀'
-                    });
-                } else {
-                    alert("המכשיר שלך לא תומך בשיתוף ישיר. שמור לגלריה ושתף משם.");
+                    await navigator.share({ files: [file] });
                 }
-            } catch (err) {
-                console.error("שגיאה בשיתוף:", err);
-            }
+            } catch (err) { alert("שגיאה בשיתוף"); }
         });
 
         dlBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(resultImg.src);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'ViralAvatar_' + Date.now() + '.jpg';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } catch (err) {
-                alert("לא ניתן להוריד את התמונה ישירות.");
-            }
+            const link = document.createElement('a');
+            link.href = resultImg.src;
+            link.download = 'ViralAvatar.jpg';
+            link.click();
         });
 
         initCamera();
