@@ -35,10 +35,11 @@
 
         #styleMenu { display: none; flex-direction: column; width: 100%; gap: 15px; overflow-y: auto; max-height: 40vh; padding-right: 5px;}
         
-        .custom-prompt { display: flex; gap: 8px; margin-bottom: 10px; }
-        .custom-prompt input { flex: 1; padding: 12px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; direction: ltr; text-align: left; font-size: 0.95rem;}
-        .custom-prompt input:focus { border-color: var(--primary); }
-        .custom-prompt button { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; padding: 0 20px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;}
+        /* התיבה החדשה ללא הגבלה */
+        .custom-prompt { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .custom-prompt textarea { width: 100%; padding: 12px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; direction: ltr; text-align: left; font-size: 0.95rem; resize: vertical; min-height: 60px; font-family: inherit; line-height: 1.4;}
+        .custom-prompt textarea:focus { border-color: var(--primary); }
+        .custom-prompt button { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; width: 100%;}
 
         .category { margin-bottom: 5px; }
         .category-title { font-size: 0.9rem; color: #888; margin-bottom: 8px; font-weight: bold;}
@@ -93,8 +94,8 @@
                 <div class="category">
                     <div class="category-title">יצירה חופשית (הקלד באנגלית בלבד)</div>
                     <div class="custom-prompt">
-                        <input type="text" id="customInput" placeholder="Describe your avatar (e.g. astronaut on mars)">
-                        <button id="customBtn">צור</button>
+                        <textarea id="customInput" placeholder="Describe your avatar in detail (e.g. A bald man with a beard dressed as an astronaut on Mars, detailed background)"></textarea>
+                        <button id="customBtn">צור יצירת מופת</button>
                     </div>
                 </div>
 
@@ -149,130 +150,4 @@
         }
 
         switchCameraBtn.addEventListener('click', () => {
-            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-            initCamera();
-        });
-
-        captureBtn.addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            if (currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(video, 0, 0);
-            capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
-            resultImg.src = capturedImageBase64;
-            resultImg.style.display = 'block';
-            video.style.display = 'none';
-            cameraControls.style.display = 'none';
-            styleMenu.style.display = 'flex';
-        });
-
-        customBtn.addEventListener('click', () => {
-            const val = customInput.value.trim();
-            if(!val) { alert('אנא הקלד תיאור באנגלית'); return; }
-            applyStyle(val);
-        });
-
-        window.applyStyle = async function(styleName) {
-            styleMenu.style.display = 'none';
-            scanner.style.display = 'flex';
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ image: capturedImageBase64, style: styleName })
-                });
-
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-
-                resultImg.onload = () => {
-                    scanner.style.display = 'none';
-                    resultControls.style.display = 'flex';
-                };
-                
-                resultImg.src = data.resultUrl;
-
-            } catch (err) {
-                alert("שגיאה: " + err.message);
-                resetCamera();
-            }
-        };
-
-        function resetCamera() {
-            scanner.style.display = 'none';
-            resultImg.style.display = 'none';
-            video.style.display = 'block';
-            resultControls.style.display = 'none';
-            styleMenu.style.display = 'none';
-            cameraControls.style.display = 'flex';
-            customInput.value = '';
-        }
-
-        rtBtn.addEventListener('click', resetCamera);
-
-        waBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(resultImg.src);
-                const blob = await response.blob();
-                const file = new File([blob], 'Avatar.jpg', { type: 'image/jpeg' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file] });
-                }
-            } catch (err) { alert("שגיאה בשיתוף"); }
-        });
-
-        // הורדה חסינת-כדורים לנייד
-        dlBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(resultImg.src);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'ViralAvatar_' + Date.now() + '.jpg';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-                alert("התמונה ירדה! חפש אותה בתיקיית ה'הורדות' (Downloads) בטלפון שלך.");
-            } catch (err) {
-                alert("ההורדה נחסמה על ידי הדפדפן. לחץ לחיצה ארוכה על התמונה ובחר 'שמור תמונה'.");
-            }
-        });
-
-        // כפתור חיתוך פרופיל מעודכן
-        document.getElementById('profileBtn').addEventListener('click', () => {
-            try {
-                const size = Math.min(resultImg.naturalWidth, resultImg.naturalHeight);
-                const cropCanvas = document.createElement('canvas');
-                cropCanvas.width = size;
-                cropCanvas.height = size;
-                const ctx = cropCanvas.getContext('2d');
-                
-                const startX = (resultImg.naturalWidth - size) / 2;
-                const startY = (resultImg.naturalHeight - size) / 2;
-                
-                ctx.drawImage(resultImg, startX, startY, size, size, 0, 0, size, size);
-                
-                cropCanvas.toBlob((blob) => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'MyProfile_' + Date.now() + '.jpg';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                    alert("תמונת הפרופיל החתוכה ירדה לתיקיית ההורדות שלך!");
-                }, 'image/jpeg', 1.0);
-            } catch (err) {
-                alert("הפעולה נחסמה. כדי לשמור, פשוט לחץ לחיצה ארוכה על התמונה המקורית במסך.");
-            }
-        });
-
-        initCamera();
-    </script>
-</body>
-</html>
+            currentFacingMode = currentFacingMode === 'user' ? 'environment
