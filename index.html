@@ -246,4 +246,110 @@
             
             styleMenu.style.display = 'none';
             scanner.style.display = 'flex';
-            document.getElementById('processText').innerText = texts.translating; //
+            document.getElementById('processText').innerText = texts.translating; // מראה למשתמש שזה מתרגם
+            
+            const translatedPrompt = await translateToEnglish(val);
+            document.getElementById('processText').innerText = texts.process; // חוזר לטקסט הרגיל
+            
+            applyStyle(translatedPrompt);
+        });
+
+        window.applyStyle = async function(styleName) {
+            if (scanner.style.display !== 'flex') { // רק אם באנו מהכפתורים המהירים
+                styleMenu.style.display = 'none';
+                scanner.style.display = 'flex';
+                document.getElementById('processText').innerText = texts.process;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: capturedImageBase64, style: styleName })
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                resultImg.onload = () => {
+                    scanner.style.display = 'none';
+                    resultControls.style.display = 'flex';
+                };
+                resultImg.src = data.resultUrl;
+            } catch (err) {
+                alert("Error: " + err.message);
+                resetCamera();
+            }
+        };
+
+        function resetCamera() {
+            scanner.style.display = 'none';
+            resultImg.style.display = 'none';
+            video.style.display = 'block';
+            resultControls.style.display = 'none';
+            styleMenu.style.display = 'none';
+            cameraControls.style.display = 'flex';
+            customInput.value = '';
+        }
+
+        document.getElementById('rtBtn').addEventListener('click', resetCamera);
+
+        document.getElementById('waBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(resultImg.src);
+                const blob = await response.blob();
+                const file = new File([blob], 'Avatar.jpg', { type: 'image/jpeg' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file] });
+                }
+            } catch (err) { alert(texts.errShare); }
+        });
+
+        document.getElementById('dlBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(resultImg.src);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'ViralAvatar_' + Date.now() + '.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("Please long-press the image to save.");
+            }
+        });
+
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            try {
+                const size = Math.min(resultImg.naturalWidth, resultImg.naturalHeight);
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = size;
+                cropCanvas.height = size;
+                const ctx = cropCanvas.getContext('2d');
+                
+                const startX = (resultImg.naturalWidth - size) / 2;
+                const startY = (resultImg.naturalHeight - size) / 2;
+                
+                ctx.drawImage(resultImg, startX, startY, size, size, 0, 0, size, size);
+                
+                cropCanvas.toBlob((blob) => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'MyProfile_' + Date.now() + '.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }, 'image/jpeg', 1.0);
+            } catch (err) {
+                alert("Please long-press the image to save.");
+            }
+        });
+
+        initCamera();
+    </script>
+</body>
+</html>
