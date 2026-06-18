@@ -20,10 +20,11 @@
         img { display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; }
         canvas { display: none; }
         
-        .scanner-container { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 3; display: none; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
-        .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); box-shadow: 0 0 20px 5px var(--primary); animation: scan 1.5s ease-in-out infinite alternate; }
-        .overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); text-align: center; width: 85%; line-height: 1.5;}
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        /* סורק טעינה פשוט ויציב יותר */
+        .scanner-container { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 3; display: none; background: rgba(0,0,0,0.7); flex-direction: column; justify-content: center; align-items: center;}
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .overlay-text { font-weight: bold; color: var(--primary); text-align: center; line-height: 1.5; font-size: 1.2rem;}
 
         .bottom-area { width: 100%; max-width: 400px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 20px;}
         
@@ -35,7 +36,6 @@
 
         #styleMenu { display: none; flex-direction: column; width: 100%; gap: 15px; overflow-y: auto; max-height: 40vh; padding-right: 5px;}
         
-        /* אזור הקלדת טקסט חופשי */
         .custom-prompt { display: flex; gap: 8px; margin-bottom: 10px; }
         .custom-prompt input { flex: 1; padding: 12px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; direction: ltr; text-align: left; font-size: 0.95rem;}
         .custom-prompt input:focus { border-color: var(--primary); }
@@ -74,9 +74,8 @@
             <img id="resultImg" alt="AI Result">
             
             <div class="scanner-container" id="scanner">
-                <div class="scanner-line"></div>
+                <div class="spinner"></div>
                 <div class="overlay-text">
-                    <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
                     מעבד יצירת מופת...<br>
                     <span style="font-size: 0.8rem; color: #fff; font-weight: normal;">זה עשוי לקחת עד חצי דקה</span>
                 </div>
@@ -94,7 +93,8 @@
                 <div class="category">
                     <div class="category-title">יצירה חופשית (הקלד באנגלית בלבד)</div>
                     <div class="custom-prompt">
-                        <input type="text" id="customInput" placeholder="A bald man with beard as a gladiator">
+                        <!-- התיבה ריקה עכשיו ויש רק Placeholder -->
+                        <input type="text" id="customInput" placeholder="Describe your avatar (e.g. astronaut on mars)">
                         <button id="customBtn">צור</button>
                     </div>
                 </div>
@@ -167,11 +167,10 @@
             styleMenu.style.display = 'flex';
         });
 
-        // האזנה לכפתור "יצירה חופשית"
         customBtn.addEventListener('click', () => {
             const val = customInput.value.trim();
             if(!val) {
-                alert('אנא הקלד תיאור באנגלית (למשל: astronaut on mars)');
+                alert('אנא הקלד תיאור באנגלית');
                 return;
             }
             applyStyle(val);
@@ -179,7 +178,7 @@
 
         window.applyStyle = async function(styleName) {
             styleMenu.style.display = 'none';
-            scanner.style.display = 'block';
+            scanner.style.display = 'flex'; // שינוי ל-flex כדי שהסורק החדש יוצג נכון
 
             try {
                 const response = await fetch(API_URL, {
@@ -208,7 +207,7 @@
             resultControls.style.display = 'none';
             styleMenu.style.display = 'none';
             cameraControls.style.display = 'flex';
-            customInput.value = ''; // ניקוי התיבה
+            customInput.value = '';
         }
 
         rtBtn.addEventListener('click', resetCamera);
