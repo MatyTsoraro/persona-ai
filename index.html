@@ -35,11 +35,15 @@
 
         #styleMenu { display: none; flex-direction: column; width: 100%; gap: 15px; overflow-y: auto; max-height: 40vh; padding-right: 5px;}
         
-        /* התיבה החדשה ללא הגבלה */
         .custom-prompt { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .custom-prompt textarea { width: 100%; padding: 12px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; direction: ltr; text-align: left; font-size: 0.95rem; resize: vertical; min-height: 60px; font-family: inherit; line-height: 1.4;}
+        .textarea-wrapper { position: relative; width: 100%; }
+        .custom-prompt textarea { width: 100%; padding: 12px; padding-inline-end: 45px; border-radius: 10px; background: #000; border: 1px solid #444; color: white; outline: none; font-size: 0.95rem; resize: vertical; min-height: 70px; font-family: inherit; line-height: 1.4;}
         .custom-prompt textarea:focus { border-color: var(--primary); }
         .custom-prompt button { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; width: 100%;}
+        
+        .mic-btn { position: absolute; bottom: 12px; inset-inline-end: 12px; background: transparent; border: none; color: #888; font-size: 1.3rem; cursor: pointer; transition: 0.3s; }
+        .mic-btn.recording { color: red; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
         .category { margin-bottom: 5px; }
         .category-title { font-size: 0.9rem; color: #888; margin-bottom: 8px; font-weight: bold;}
@@ -77,8 +81,8 @@
             <div class="scanner-container" id="scanner">
                 <div class="spinner"></div>
                 <div class="overlay-text">
-                    מעבד יצירת מופת...<br>
-                    <span style="font-size: 0.8rem; color: #fff; font-weight: normal;">זה עשוי לקחת עד חצי דקה</span>
+                    <span id="processText">מעבד יצירת מופת...</span><br>
+                    <span id="waitText" style="font-size: 0.8rem; color: #fff; font-weight: normal;">זה עשוי לקחת עד חצי דקה</span>
                 </div>
             </div>
         </div>
@@ -92,47 +96,89 @@
 
             <div id="styleMenu">
                 <div class="category">
-                    <div class="category-title">יצירה חופשית (הקלד באנגלית בלבד)</div>
+                    <div class="category-title" id="customTitle">יצירה חופשית</div>
                     <div class="custom-prompt">
-                        <textarea id="customInput" placeholder="Describe your avatar in detail (e.g. A bald man with a beard dressed as an astronaut on Mars, detailed background)"></textarea>
+                        <div class="textarea-wrapper">
+                            <textarea id="customInput" placeholder="תאר את האווטאר שלך..."></textarea>
+                            <button id="micBtn" class="mic-btn"><i class="fas fa-microphone"></i></button>
+                        </div>
                         <button id="customBtn">צור יצירת מופת</button>
                     </div>
                 </div>
 
                 <div class="category">
-                    <div class="category-title">תבניות מהירות</div>
+                    <div class="category-title" id="quickTitle">תבניות מהירות</div>
                     <div class="style-scroll">
-                        <div class="style-card cat-pro" onclick="applyStyle('tech_ceo')"><i class="fas fa-briefcase"></i><span>מנכ"ל הייטק</span></div>
-                        <div class="style-card cat-cinema" onclick="applyStyle('gladiator')"><i class="fas fa-shield-alt"></i><span>גלדיאטור</span></div>
-                        <div class="style-card cat-fantasy" onclick="applyStyle('jedi_master')"><i class="fab fa-jedi-order"></i><span>אביר ג'דיי</span></div>
-                        <div class="style-card cat-cinema" onclick="applyStyle('mafia_boss')"><i class="fas fa-user-tie"></i><span>בוס מאפיה</span></div>
+                        <div class="style-card cat-pro" onclick="applyStyle('tech_ceo')"><i class="fas fa-briefcase"></i><span id="ceoText">מנכ"ל הייטק</span></div>
+                        <div class="style-card cat-cinema" onclick="applyStyle('gladiator')"><i class="fas fa-shield-alt"></i><span id="gladText">גלדיאטור</span></div>
+                        <div class="style-card cat-fantasy" onclick="applyStyle('jedi_master')"><i class="fab fa-jedi-order"></i><span id="jediText">אביר ג'דיי</span></div>
+                        <div class="style-card cat-cinema" onclick="applyStyle('mafia_boss')"><i class="fas fa-user-tie"></i><span id="mafiaText">בוס מאפיה</span></div>
                     </div>
                 </div>
             </div>
 
             <div id="resultControls">
-                <button class="action-btn" id="waBtn"><i class="fab fa-whatsapp"></i> שתף בווטסאפ</button>
-                <button class="action-btn" id="dlBtn"><i class="fas fa-download"></i> שמור לגלריה</button>
-                <button class="action-btn" id="profileBtn"><i class="fas fa-user-circle"></i> חתוך כתמונת פרופיל</button>
-                <button class="action-btn" id="rtBtn"><i class="fas fa-camera"></i> צלם מחדש</button>
+                <button class="action-btn" id="waBtn"><i class="fab fa-whatsapp"></i> <span id="waText">שתף בווטסאפ</span></button>
+                <button class="action-btn" id="dlBtn"><i class="fas fa-download"></i> <span id="dlText">שמור לגלריה</span></button>
+                <button class="action-btn" id="profileBtn"><i class="fas fa-user-circle"></i> <span id="profText">חתוך כתמונת פרופיל</span></button>
+                <button class="action-btn" id="rtBtn"><i class="fas fa-camera"></i> <span id="rtText">צלם מחדש</span></button>
             </div>
         </div>
     </div>
 
     <script>
+        // --- מילון שפות אוטומטי ---
+        const dict = {
+            'he': {
+                dir: 'rtl', process: "מעבד יצירת מופת...", wait: "זה עשוי לקחת עד חצי דקה",
+                customTitle: "יצירה חופשית (הקלד או דבר)", placeholder: "תאר את האווטאר שלך בפירוט...", btnCreate: "צור יצירת מופת",
+                quickTitle: "תבניות מהירות", ceo: 'מנכ"ל הייטק', glad: "גלדיאטור", jedi: "אביר ג'דיי", mafia: "בוס מאפיה",
+                wa: "שתף בווטסאפ", dl: "שמור לגלריה", prof: "חתוך כתמונת פרופיל", rt: "צלם מחדש",
+                alertEmpty: "אנא הקלד או הקלט תיאור", translating: "מתרגם לאנגלית...", errCam: "שגיאה במצלמה", errShare: "שגיאה בשיתוף"
+            },
+            'en': {
+                dir: 'ltr', process: "Processing Masterpiece...", wait: "This may take up to 30 seconds",
+                customTitle: "Free Creation (Type or Speak)", placeholder: "Describe your avatar in detail...", btnCreate: "Create Masterpiece",
+                quickTitle: "Quick Templates", ceo: "Tech CEO", glad: "Gladiator", jedi: "Jedi Master", mafia: "Mafia Boss",
+                wa: "Share on WhatsApp", dl: "Save to Gallery", prof: "Crop for Profile", rt: "Retake Photo",
+                alertEmpty: "Please type or record a description", translating: "Translating to English...", errCam: "Camera Error", errShare: "Share Error"
+            }
+        };
+
+        const currentLang = navigator.language.startsWith('he') ? 'he' : 'en';
+        const texts = dict[currentLang];
+
+        // החלת השפה על המסך
+        document.documentElement.dir = texts.dir;
+        document.documentElement.lang = currentLang;
+        document.getElementById('processText').innerText = texts.process;
+        document.getElementById('waitText').innerText = texts.wait;
+        document.getElementById('customTitle').innerText = texts.customTitle;
+        document.getElementById('customInput').placeholder = texts.placeholder;
+        document.getElementById('customBtn').innerText = texts.btnCreate;
+        document.getElementById('quickTitle').innerText = texts.quickTitle;
+        document.getElementById('ceoText').innerText = texts.ceo;
+        document.getElementById('gladText').innerText = texts.glad;
+        document.getElementById('jediText').innerText = texts.jedi;
+        document.getElementById('mafiaText').innerText = texts.mafia;
+        document.getElementById('waText').innerText = texts.wa;
+        document.getElementById('dlText').innerText = texts.dl;
+        document.getElementById('profText').innerText = texts.prof;
+        document.getElementById('rtText').innerText = texts.rt;
+
+        // --- שאר הלוגיקה של האפליקציה ---
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const resultImg = document.getElementById('resultImg');
         const captureBtn = document.getElementById('captureBtn');
         const switchCameraBtn = document.getElementById('switchCameraBtn');
         const scanner = document.getElementById('scanner');
-        
         const cameraControls = document.getElementById('cameraControls');
         const styleMenu = document.getElementById('styleMenu');
         const resultControls = document.getElementById('resultControls');
-
         const customBtn = document.getElementById('customBtn');
         const customInput = document.getElementById('customInput');
+        const micBtn = document.getElementById('micBtn');
 
         let currentFacingMode = 'user';
         let stream = null;
@@ -146,8 +192,58 @@
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => video.play();
-            } catch (err) { alert("שגיאה במצלמה"); }
+            } catch (err) { alert(texts.errCam); }
         }
 
         switchCameraBtn.addEventListener('click', () => {
-            currentFacingMode = currentFacingMode === 'user' ? 'environment
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            initCamera();
+        });
+
+        captureBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+            ctx.drawImage(video, 0, 0);
+            capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            resultImg.src = capturedImageBase64;
+            resultImg.style.display = 'block';
+            video.style.display = 'none';
+            cameraControls.style.display = 'none';
+            styleMenu.style.display = 'flex';
+        });
+
+        // --- זיהוי דיבור ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = currentLang === 'he' ? 'he-IL' : 'en-US';
+            recognition.onstart = () => micBtn.classList.add('recording');
+            recognition.onend = () => micBtn.classList.remove('recording');
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                customInput.value += (customInput.value ? " " : "") + transcript;
+            };
+            micBtn.onclick = () => recognition.start();
+        } else {
+            micBtn.style.display = 'none'; // מוסתר אם הדפדפן לא תומך
+        }
+
+        // --- פונקציית תרגום אוטומטי ---
+        async function translateToEnglish(text) {
+            if (!/[\u0590-\u05FF]/.test(text)) return text; // רק אם יש עברית נתרגם
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=he|en`);
+                const data = await res.json();
+                return data.responseData.translatedText;
+            } catch(e) { return text; }
+        }
+
+        customBtn.addEventListener('click', async () => {
+            const val = customInput.value.trim();
+            if(!val) { alert(texts.alertEmpty); return; }
+            
+            styleMenu.style.display = 'none';
+            scanner.style.display = 'flex';
+            document.getElementById('processText').innerText = texts.translating; //
