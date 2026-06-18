@@ -58,7 +58,6 @@
         .action-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.1rem; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; cursor: pointer; color: white;}
         #waBtn { background: #25D366; }
         #dlBtn { background: var(--primary); color: #000; }
-        /* הכפתור החדש לתמונת פרופיל */
         #profileBtn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         #rtBtn { background: transparent; border: 1px solid #555; }
     </style>
@@ -113,7 +112,6 @@
             <div id="resultControls">
                 <button class="action-btn" id="waBtn"><i class="fab fa-whatsapp"></i> שתף בווטסאפ</button>
                 <button class="action-btn" id="dlBtn"><i class="fas fa-download"></i> שמור לגלריה</button>
-                <!-- הכפתור החדש -->
                 <button class="action-btn" id="profileBtn"><i class="fas fa-user-circle"></i> חתוך כתמונת פרופיל</button>
                 <button class="action-btn" id="rtBtn"><i class="fas fa-camera"></i> צלם מחדש</button>
             </div>
@@ -171,10 +169,7 @@
 
         customBtn.addEventListener('click', () => {
             const val = customInput.value.trim();
-            if(!val) {
-                alert('אנא הקלד תיאור באנגלית');
-                return;
-            }
+            if(!val) { alert('אנא הקלד תיאור באנגלית'); return; }
             applyStyle(val);
         });
 
@@ -192,13 +187,11 @@
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
 
-                // התיקון: מסך הטעינה מחכה עד שהתמונה *באמת* מסיימת לרדת לדפדפן
                 resultImg.onload = () => {
                     scanner.style.display = 'none';
                     resultControls.style.display = 'flex';
                 };
                 
-                // מתחיל את הורדת התמונה הכבדה
                 resultImg.src = data.resultUrl;
 
             } catch (err) {
@@ -230,33 +223,53 @@
             } catch (err) { alert("שגיאה בשיתוף"); }
         });
 
+        // הורדה חסינת-כדורים לנייד
         dlBtn.addEventListener('click', async () => {
-            const link = document.createElement('a');
-            link.href = resultImg.src;
-            link.download = 'ViralAvatar.jpg';
-            link.click();
+            try {
+                const response = await fetch(resultImg.src);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'ViralAvatar_' + Date.now() + '.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                alert("התמונה ירדה! חפש אותה בתיקיית ה'הורדות' (Downloads) בטלפון שלך.");
+            } catch (err) {
+                alert("ההורדה נחסמה על ידי הדפדפן. לחץ לחיצה ארוכה על התמונה ובחר 'שמור תמונה'.");
+            }
         });
 
-        // הפונקציה לחיתוך תמונת פרופיל (1:1)
+        // כפתור חיתוך פרופיל מעודכן
         document.getElementById('profileBtn').addEventListener('click', () => {
-            const size = Math.min(resultImg.naturalWidth, resultImg.naturalHeight);
-            const cropCanvas = document.createElement('canvas');
-            cropCanvas.width = size;
-            cropCanvas.height = size;
-            const ctx = cropCanvas.getContext('2d');
-            
-            // חישוב המרכז של התמונה
-            const startX = (resultImg.naturalWidth - size) / 2;
-            const startY = (resultImg.naturalHeight - size) / 2;
-            
-            // חיתוך וציור של הריבוע
-            ctx.drawImage(resultImg, startX, startY, size, size, 0, 0, size, size);
-            
-            // הורדה
-            const link = document.createElement('a');
-            link.href = cropCanvas.toDataURL('image/jpeg', 1.0);
-            link.download = 'MyProfileAvatar.jpg';
-            link.click();
+            try {
+                const size = Math.min(resultImg.naturalWidth, resultImg.naturalHeight);
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = size;
+                cropCanvas.height = size;
+                const ctx = cropCanvas.getContext('2d');
+                
+                const startX = (resultImg.naturalWidth - size) / 2;
+                const startY = (resultImg.naturalHeight - size) / 2;
+                
+                ctx.drawImage(resultImg, startX, startY, size, size, 0, 0, size, size);
+                
+                cropCanvas.toBlob((blob) => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'MyProfile_' + Date.now() + '.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    alert("תמונת הפרופיל החתוכה ירדה לתיקיית ההורדות שלך!");
+                }, 'image/jpeg', 1.0);
+            } catch (err) {
+                alert("הפעולה נחסמה. כדי לשמור, פשוט לחץ לחיצה ארוכה על התמונה המקורית במסך.");
+            }
         });
 
         initCamera();
