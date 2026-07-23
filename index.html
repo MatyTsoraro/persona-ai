@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Viral Avatar Studio</title>
+    <!-- השורה הזו הייתה חסרה והיא הקישור למניפסט! -->
+    <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #00f3ff; --secondary: #bc13fe; --bg: #0a0a12; --panel: #161625; --text: #ffffff; }
@@ -350,6 +352,15 @@
         });
 
         initCamera();
+
+        // --- רישום Service Worker הנדרש כדי ש-PWABuilder יעבוד חלק ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => console.log('Service Worker registered', reg))
+                .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
     </script>
 </body>
 </html>
